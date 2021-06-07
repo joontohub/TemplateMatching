@@ -4,24 +4,32 @@ import imutils
 import glob
 import cv2
 from PIL import Image
+import time
+
+synthesis_filename = "cropped_man_synthesis.png"
+original_filename = "man_original.jpg"
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-t", "--template", required=True,
+ap.add_argument("-t", "--template", required=False,
                 help="Path to template image")
-ap.add_argument("-i", "--images", required=True,
+ap.add_argument("-i", "--images", required=False,
                 help="Path to images where template will be matched")
 ap.add_argument("-v", "--visualize",
                 help="Flag indicating whether or not to visualize each iteration")
 args = vars(ap.parse_args())
 
-template = cv2.imread(args["template"])
+template = cv2.imread(synthesis_filename)
 template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
 template = cv2.Canny(template, 50, 200)
 (tH, tW) = template.shape[:2]
 cv2.imshow("Template--", template)
 
-image = cv2.imread("./woman_original.jpg")
+
+# original file name ################
+image = cv2.imread(original_filename)
+####################################
+
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 found = None
 
@@ -61,27 +69,29 @@ cv2.rectangle(image, (startX, startY), (endX, endY), (255, 0, 255), 1)
 print(startX, "--- startX value ---", startY, "----startY--- ",
       endX, "--endX value-- ", endY, "--endY value--")
 cv2.imshow("Image---", image)
-cv2.imwrite("woman_rectangled.jpg", image)
+#####################################################
+cv2.imwrite("./rectangled_" + original_filename, image)
+######################################################
 cv2.waitKey(0)
 
 
-img = Image.open('./woman_synthesis.png')
+img = Image.open(synthesis_filename)
 newX = endX - startX
 newY = endY - startY
 img_resize = img.resize((newX, newY))
 
 ###
 
-img_resize.save('./woman_resized.jpg')
+img_resize.save("./resized_" + synthesis_filename)
 
 # img_resize_lanczos = img.resize((256, 256), Image.LANCZOS)
 # img_resize_lanczos.save('data/dst/sample_pillow_resize_lanczos.jpg')
+time.sleep(0.5)
+original = Image.open(original_filename)
 
-
-original = Image.open('woman_original.jpg')
-resized = Image.open('woman_resized.jpg')
+resized = Image.open("./resized_" + synthesis_filename)
 
 
 new_image = original
 new_image.paste(resized, (startX, startY, endX, endY))
-new_image.save("woman_paste_result.jpg")
+new_image.save("./result_" + original_filename)
